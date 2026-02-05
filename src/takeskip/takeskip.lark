@@ -1,0 +1,27 @@
+?start: group group*                -> flatten
+
+group: command command*             -> flatten
+    | "(" command command* ")"      -> flatten
+    | "(" command command* ")" int  -> repeat
+
+command:  "t"i  int -> take
+        | "i"i  int -> invert
+        | "r"i  int -> reverse
+        | "ri"i int -> reverse_invert
+        | "b"i  int -> backup
+        | "s"i  int -> skip
+        | "z"i  int -> zero_pad
+        | "n"i  int -> one_pad
+        | "d"i  BIN -> data_pad
+        | "p"i  csv -> permute
+
+csv: (int|range) ("," (int|range))*
+
+range:  int "-" int
+int: INT            -> integer
+
+BIN: /[01]+/
+INT: /[0-9]+/
+
+%import common.WS
+%ignore WS

@@ -1,0 +1,22 @@
+[project]
+name = "takeskip"
+version = "0.1.0"
+description = "Do bit manipulations with take/skip commands"
+readme = "README.md"
+authors = [
+    { name = "Jonathan Olsten", email = "jolsten@gmail.com" }
+]
+requires-python = ">=3.9"
+dependencies = [
+    "lark>=1.2",
+    "numpy>=2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+]
