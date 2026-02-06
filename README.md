@@ -9,10 +9,8 @@ TakeSkip provides a domain-specific language for selecting, rearranging, and man
 ## Installation
 
 ```bash
-pip install numpy lark
+pip install takeskip
 ```
-
-Place the takeskip module in your Python path.
 
 ## Basic Usage
 
@@ -76,16 +74,22 @@ result = takeskip("(t2r2s1)4", bits)  # Repeat grouped operations
 
 ## Advanced Examples
 
+### Nibble Swap (swap 4-bit chunks)
+```python
+bits = np.array([1, 1, 1, 1, 0, 0, 0, 0], dtype=np.uint8)
+result = takeskip("s4t4b8t4", bits)  # [0, 0, 0, 0, 1, 1, 1, 1]
+```
+
 ### Extract Every Other Bit
 ```python
 bits = np.array([1, 0, 1, 0, 1, 0, 1, 0], dtype=np.uint8)
 result = takeskip("(t1s1)4", bits)  # [1, 1, 1, 1]
 ```
 
-### Nibble Swap (swap 4-bit chunks)
+### Deinterleave Nibbles
 ```python
-bits = np.array([1, 1, 1, 1, 0, 0, 0, 0], dtype=np.uint8)
-result = takeskip("s4t4b8t4", bits)  # [0, 0, 0, 0, 1, 1, 1, 1]
+bits = np.array([1, 0, 1, 0, 1, 0, 1, 0], dtype=np.uint8)
+result = takeskip("(t1s1)4 b8 (s1t1)4", bits)  # [1, 1, 1, 1, 0, 0, 0, 0]
 ```
 
 ### Complex Permutation
@@ -100,14 +104,6 @@ result = takeskip("p1-4,8-5", bits)  # [1, 0, 1, 1, 0, 1, 0, 0]
 bits = np.array([1, 1, 1, 1, 0, 0, 0, 0], dtype=np.uint8)
 result = takeskip("(t1z1)4", bits)
 # [1, 0, 1, 0, 1, 0, 1, 0] - interleaved with zeros
-```
-
-### Reverse Complement (DNA-like operation)
-```python
-bits = np.array([1, 0, 1, 1, 0, 0, 1, 0], dtype=np.uint8)
-result = takeskip("ri8", bits)  # Reverse and invert all
-# [1, 0, 1, 1, 0, 0, 1, 0] reversed becomes [0, 1, 0, 0, 1, 1, 0, 1]
-# then inverted becomes [1, 0, 1, 1, 0, 0, 1, 0]
 ```
 
 ## Remnant Handling
@@ -150,9 +146,6 @@ result = takeskip("s2t4", bits)
 - **Data packing/unpacking**: Extract fields from packed binary formats
 - **Protocol parsing**: Parse binary protocols with field alignment
 - **Bit manipulation**: Rearrange bits in encryption/encoding operations
-- **Data compression**: Pattern-based bit selection
-- **Binary format conversion**: Transform between different bit layouts
-- **Bioinformatics**: DNA/RNA sequence manipulation with reverse complement
 
 ## Command Chaining
 
@@ -176,21 +169,6 @@ result = takeskip("t2s2t4", bits)  # [1, 0, 0, 0, 1, 0]
 - **Permutation** uses 1-based indexing (bit 1 is the first bit)
 - **Ranges** in permutation are inclusive: `1-4` includes bits 1, 2, 3, and 4
 
-## Error Handling
-
-```python
-# Invalid remnant value
-try:
-    takeskip("t4", bits, remnant="invalid")
-except ValueError as e:
-    print(e)  # "invalid remnant argument; must be 'remove', 'keep', or 'pad'"
-
-# Invalid command syntax
-try:
-    takeskip("x4", bits)  # 'x' is not a valid command
-except Exception as e:
-    print(e)  # Lark parse error
-```
 
 ## API Documentation
 
