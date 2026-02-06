@@ -1,9 +1,9 @@
-from typing import Literal, Optional
+from typing import Literal
 
 import numpy as np
 import numpy.typing as npt
 
-from takeskip.commands import Backup, parse_command
+from takeskip.parser import parse_command
 
 
 def takeskip(
@@ -57,38 +57,19 @@ def takeskip(
         raise ValueError(msg)
 
     commands = parse_command(command)
-    result_size = sum(i.result_size for i in commands)
 
-    if result_size == 0:
-        msg = "Command would result in output with word_size 0."
-        raise ValueError(msg)
-
-    input_size = array.shape[-1]
-
-    # Reshape into one input length per row
-    unpacked = array.reshape(-1, input_size)
-
-    # Determine the command's resulting output length in bits
-    if remnant == "remove":
-        output_size = result_size
-    else:
-        # If "keep" or "pad", ensure the output size is the input size, plus any additional bits
-        # added by backing up in the stream
-        delta_size = sum([c.value for c in commands if isinstance(c, Backup)])
-        output_size = input_size + delta_size
-    result = np.zeros([*unpacked.shape[:-1], output_size], dtype="u1")
-
-    in_ptr = 0
-    out_ptr = 0
+    components = []
+    ptr = 0
     for cmd in commands:
-        manipulated_bits = cmd(unpacked[:, in_ptr : in_ptr + cmd.input_size])
-        if manipulated_bits is not None:
-            result[:, out_ptr : out_ptr + cmd.result_size] = manipulated_bits
-
-        in_ptr += cmd.input_size
-        out_ptr += cmd.result_size
+        result, ptr = cmd(array, ptr)
+        components.append(result)
 
     if remnant == "keep":
-        result[:, out_ptr:] = unpacked[:, out_ptr:]
+        result = array[..., ptr:]
+        components.append(result)
+    elif remnant == "pad":
+        result = np.zeros((*array.shape[-1:], array.shape[-1] - ptr), dtype="u1")
+
+    result = np.hstack(components)
 
     return result

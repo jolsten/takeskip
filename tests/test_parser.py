@@ -10,8 +10,20 @@ from takeskip.commands import (
     Skip,
     Take,
     Zeros,
-    parse_command,
 )
+from takeskip.parser import one_based_range_to_indices, parse_command
+
+
+@pytest.mark.parametrize(
+    "a, b, values",
+    [
+        (1, 4, [0, 1, 2, 3]),
+        (1, 1, [0]),
+        (8, 8, [7]),
+    ],
+)
+def test_one_based_ranges(a: int, b: int, values: list[int]):
+    assert one_based_range_to_indices(a, b).tolist() == values
 
 
 @pytest.mark.parametrize(
