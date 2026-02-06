@@ -36,21 +36,21 @@ class TestCommands:
 # from takeskip import takeskip
 
 
-# def test_takeskip_word_s1t8s1():
-#     data = np.array(range(256), dtype=">u2") << 1
-#     mask = np.tile([0, 512], reps=len(data) // 2)
-#     data = np.bitwise_xor(data, mask)
+def test_takeskip_word_s1t8s1():
+    data = np.array(range(256), dtype=">u2") << 1
+    mask = np.tile(np.array([0, 512], dtype=">u2"), reps=len(data) // 2)
+    data = np.bitwise_xor(data, mask)
+    data = data.astype(">u2")
 
-#     array = VarUIntArray(data, word_size=10)
-#     out = takeskip("s1t8s1", array, mode="word")
-#     assert out.word_size == 8
-#     assert out.tolist() == list(range(256))
+    array = data.view("u1").reshape(-1, 2)
+    array = np.unpackbits(array, axis=-1)
+    array = array[..., -10:]
 
-#     NUM_ROWS = 10
-#     array = VarUIntArray([data] * NUM_ROWS, word_size=10)
-#     out = takeskip("s1t8s1", array, mode="word")
-#     assert out.word_size == 8
-#     assert out.tolist() == [list(range(256))] * NUM_ROWS
+    out = takeskip("s1t8s1", array)
+    assert out.shape[-1] == 8
+
+    packed = np.packbits(out, axis=-1).flatten()
+    assert packed.tolist() == list(range(256))
 
 
 # example_256 = VarUIntArray(range(256), word_size=8)

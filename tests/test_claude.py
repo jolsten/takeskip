@@ -592,10 +592,10 @@ class TestRealWorldScenarios:
         assert_array_equal(result, expected)
 
     def test_interleave_with_zeros(self):
-        """Test interleaving bits with zeros."""
-        bits = np.array([1, 1, 1, 1], dtype=np.uint8)
-        result = takeskip("t1z1t1z1t1z1t1z1", bits)
-        expected = np.array([1, 0, 1, 0, 1, 0, 1, 0], dtype=np.uint8)
+        """Test interleaving all bits with zeros."""
+        bits = np.array([1, 1, 0, 0], dtype=np.uint8)
+        result = takeskip("(t1z1)4", bits)
+        expected = np.array([1, 0, 1, 0, 0, 0, 0, 0], dtype=np.uint8)
         assert_array_equal(result, expected)
 
     def test_extract_specific_fields(self):

@@ -19,9 +19,11 @@ csv: (int|range) ("," (int|range))*
 
 range:  int "-" int
 int: INT            -> integer
+pos_int: POS_INT    -> integer
 
 BIN: /[01]+/
 INT: /[0-9]+/
+POS_INT: /[1-9][0-9]*/
 
 %import common.WS
 %ignore WS
