@@ -1,6 +1,5 @@
 [project]
 name = "takeskip"
-version = "0.1.0"
 description = "Do bit manipulations with take/skip commands"
 readme = "README.md"
 authors = [
@@ -11,12 +10,19 @@ dependencies = [
     "lark>=1.2",
     "numpy>=2",
 ]
+dynamic = ["version"]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
     "pytest>=8.4.2",
 ]
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/takeskip/_version.py"
