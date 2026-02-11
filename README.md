@@ -204,4 +204,4 @@ When adding new commands:
 
 ## License
 
-[Your license here]
+`takeskip` is licensed under the MIT License - see the LICENSE file for details

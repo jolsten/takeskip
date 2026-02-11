@@ -10,6 +10,7 @@ dependencies = [
     "lark>=1.2",
     "numpy>=2",
 ]
+license = "MIT"
 dynamic = ["version"]
 
 [build-system]
