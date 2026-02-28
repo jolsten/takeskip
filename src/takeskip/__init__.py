@@ -11,6 +11,8 @@ import numpy.typing as npt
 
 from takeskip.parser import parse_command
 
+__all__ = ["takeskip"]
+
 
 def takeskip(
     command: str,
@@ -67,8 +69,7 @@ def takeskip(
         the last dimension which depends on the command and remnant setting.
 
     Raises:
-        ValueError: If the command syntax is incorrect
-        TypeError: If the remnant argument is invalid
+        ValueError: If the command syntax is incorrect or the remnant argument is invalid
 
     Examples:
         >>> import numpy as np
@@ -80,14 +81,16 @@ def takeskip(
     """
     if remnant not in ["remove", "keep", "pad"]:
         msg = "invalid remnant argument; must be 'remove', 'keep', or 'pad'"
-        raise TypeError(msg)
+        raise ValueError(msg)
 
     commands = parse_command(command)
 
     components = []
     ptr = 0
+    max_ptr = array.shape[-1]
     for cmd in commands:
         result, ptr = cmd(array, ptr)
+        ptr = max(0, min(ptr, max_ptr))
         components.append(result)
 
     if remnant == "keep":

@@ -25,7 +25,7 @@ from takeskip.commands import (
 )
 
 grammar = (pathlib.Path(__file__).parent / "takeskip.lark").read_text()
-command_parser = Lark(grammar, parser="earley")
+command_parser = Lark(grammar, parser="lalr")
 
 
 def one_based_range_to_indices(start: int, end: int) -> npt.NDArray[np.int64]:

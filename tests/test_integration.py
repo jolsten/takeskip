@@ -416,9 +416,9 @@ class TestErrorHandling:
     """Test error conditions and exceptions."""
 
     def test_invalid_remnant_value(self):
-        """Test invalid remnant parameter raises TypeError."""
+        """Test invalid remnant parameter raises ValueError."""
         bits = np.array([1, 0, 1, 1], dtype=np.uint8)
-        with pytest.raises(TypeError):  # Accept either until fix applied
+        with pytest.raises(ValueError):
             takeskip("t4", bits, remnant="invalid")  # type: ignore
 
     def test_invalid_command_syntax(self):

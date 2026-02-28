@@ -192,7 +192,7 @@ def takeskip(
 - Numpy array with same dtype, modified according to commands
 
 **Raises:**
-- `ValueError`: Invalid remnant argument or command syntax error
+- `ValueError`: Invalid remnant argument or invalid command syntax
 
 ## Contributing
 

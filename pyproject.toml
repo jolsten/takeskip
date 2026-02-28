@@ -12,6 +12,17 @@ dependencies = [
 ]
 license = "MIT"
 dynamic = ["version"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Scientific/Engineering",
+    "Typing :: Typed",
+]
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
@@ -19,6 +30,7 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
+    "hypothesis>=6.141.1",
     "pytest>=8.4.2",
 ]
 

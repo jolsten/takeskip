@@ -5,37 +5,39 @@ Each command takes an array and a pointer position, performs its operation, and 
 the result along with an updated pointer position.
 """
 
-from abc import abstractmethod
-from typing import Any, Union
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+from typing import Any
 
 import numpy as np
 
 
 def empty_array_like(array: np.ndarray) -> np.ndarray:
     """Create an empty array matching input shape except with 0-length last dimension.
-    
+
     Args:
         array: Input array to match shape.
-        
+
     Returns:
         Array with same shape except last dimension is 0 (effectively null for np.hstack).
     """
     return np.zeros((*array.shape[0:-1], 0), dtype="u1")
 
 
-class Command:
+class Command(ABC):
     """Base class for all take-skip commands.
-    
+
     All commands implement a __call__ method that processes an array starting at
     a given pointer position and returns results plus updated pointer.
-    
+
     Attributes:
         value: The parameter value for this command (e.g., number of bits).
     """
-    
+
     def __init__(self, value: Any) -> None:
         """Initialize command with a value parameter.
-        
+
         Args:
             value: The parameter for this command (type varies by subclass).
         """
@@ -43,7 +45,7 @@ class Command:
 
     def __repr__(self) -> str:
         """Return string representation of the command.
-        
+
         Returns:
             String in format "ClassName(value)".
         """
@@ -51,18 +53,18 @@ class Command:
 
     def __eq__(self, other) -> bool:
         """Check equality with another Command.
-        
+
         Args:
             other: Another object to compare.
-            
+
         Returns:
             True if both are same class with equal values.
-            
+
         Raises:
             TypeError: If other is not a Command instance.
         """
         if not isinstance(other, Command):
-            raise TypeError
+            return NotImplemented
 
         if isinstance(self.value, np.ndarray):
             a = self.value.tolist()
@@ -84,11 +86,11 @@ class Command:
         in_ptr: int,
     ) -> tuple[np.ndarray, int]:
         """Execute the command on an array.
-        
+
         Args:
             array: Input array (uint8 binary data).
             in_ptr: Current pointer position in the array.
-            
+
         Returns:
             Tuple of (result_array, updated_pointer).
         """
@@ -97,14 +99,14 @@ class Command:
 
 class Take(Command):
     """Take n bits from current position without modification.
-    
+
     Attributes:
         value: Number of bits to take.
     """
-    
+
     def __init__(self, value: int) -> None:
         """Initialize Take command.
-        
+
         Args:
             value: Number of bits to take.
         """
@@ -112,11 +114,11 @@ class Take(Command):
 
     def __call__(self, array: np.ndarray, ptr: int) -> tuple[np.ndarray, int]:
         """Take bits from array and advance pointer.
-        
+
         Args:
             array: Input binary array.
             ptr: Current pointer position.
-            
+
         Returns:
             Tuple of (selected_bits, new_pointer_position).
         """
@@ -127,14 +129,14 @@ class Take(Command):
 
 class Skip(Command):
     """Skip n bits (advance pointer without outputting anything).
-    
+
     Attributes:
         value: Number of bits to skip.
     """
-    
+
     def __init__(self, value: int) -> None:
         """Initialize Skip command.
-        
+
         Args:
             value: Number of bits to skip.
         """
@@ -142,11 +144,11 @@ class Skip(Command):
 
     def __call__(self, array: np.ndarray, ptr: int) -> tuple[np.ndarray, int]:
         """Skip bits by advancing pointer without output.
-        
+
         Args:
             array: Input binary array.
             ptr: Current pointer position.
-            
+
         Returns:
             Tuple of (empty_array, new_pointer_position).
         """
@@ -157,18 +159,18 @@ class Skip(Command):
 
 class Invert(Take):
     """Take n bits and invert them (0->1, 1->0).
-    
+
     Attributes:
         value: Number of bits to invert.
     """
-    
+
     def __call__(self, array: np.ndarray, ptr: int) -> tuple[np.ndarray, int]:
         """Take and invert bits using XOR with 1.
-        
+
         Args:
             array: Input binary array.
             ptr: Current pointer position.
-            
+
         Returns:
             Tuple of (inverted_bits, new_pointer_position).
         """
@@ -180,18 +182,18 @@ class Invert(Take):
 
 class Reverse(Take):
     """Take n bits and reverse their order.
-    
+
     Attributes:
         value: Number of bits to reverse.
     """
-    
+
     def __call__(self, array: np.ndarray, ptr: int) -> tuple[np.ndarray, int]:
         """Take bits and reverse along last axis.
-        
+
         Args:
             array: Input binary array.
             ptr: Current pointer position.
-            
+
         Returns:
             Tuple of (reversed_bits, new_pointer_position).
         """
@@ -203,18 +205,18 @@ class Reverse(Take):
 
 class ReverseInvert(Take):
     """Take n bits, reverse their order, and invert them.
-    
+
     Attributes:
         value: Number of bits to reverse and invert.
     """
-    
+
     def __call__(self, array: np.ndarray, ptr: int) -> tuple[np.ndarray, int]:
         """Take bits, reverse, and invert them.
-        
+
         Args:
             array: Input binary array.
             ptr: Current pointer position.
-            
+
         Returns:
             Tuple of (reversed_and_inverted_bits, new_pointer_position).
         """
@@ -227,14 +229,14 @@ class ReverseInvert(Take):
 
 class Backup(Command):
     """Move pointer backward by n positions (doesn't output anything).
-    
+
     Attributes:
         value: Number of positions to move backward.
     """
-    
+
     def __init__(self, value: Any) -> None:
         """Initialize Backup command.
-        
+
         Args:
             value: Number of positions to backup.
         """
@@ -242,11 +244,11 @@ class Backup(Command):
 
     def __call__(self, array: np.ndarray, ptr: int) -> tuple[np.ndarray, int]:
         """Move pointer backward without output.
-        
+
         Args:
             array: Input binary array.
             ptr: Current pointer position.
-            
+
         Returns:
             Tuple of (empty_array, new_pointer_position).
         """
@@ -257,23 +259,27 @@ class Backup(Command):
 
 class Pad(Command):
     """Base class for padding commands that insert bits without advancing pointer."""
+
     pass
 
 
 class Zeros(Pad):
     """Insert n zero bits without advancing pointer.
-    
+
     Attributes:
         value: Number of zeros to insert.
     """
-    
+
+    def __init__(self, value: int) -> None:
+        self.value = int(value)
+
     def __call__(self, array: np.ndarray, ptr: int) -> tuple[np.ndarray, int]:
         """Insert zeros without advancing pointer.
-        
+
         Args:
             array: Input binary array.
             ptr: Current pointer position.
-            
+
         Returns:
             Tuple of (zero_array, unchanged_pointer).
         """
@@ -283,18 +289,21 @@ class Zeros(Pad):
 
 class Ones(Pad):
     """Insert n one bits without advancing pointer.
-    
+
     Attributes:
         value: Number of ones to insert.
     """
-    
+
+    def __init__(self, value: int) -> None:
+        self.value = int(value)
+
     def __call__(self, array: np.ndarray, ptr: int) -> tuple[np.ndarray, int]:
         """Insert ones without advancing pointer.
-        
+
         Args:
             array: Input binary array.
             ptr: Current pointer position.
-            
+
         Returns:
             Tuple of (ones_array, unchanged_pointer).
         """
@@ -304,14 +313,14 @@ class Ones(Pad):
 
 class Data(Pad):
     """Insert literal binary data without advancing pointer.
-    
+
     Attributes:
         value: Numpy array of binary values to insert.
     """
-    
+
     def __init__(self, value: str) -> None:
         """Initialize Data command from binary string.
-        
+
         Args:
             value: Binary string (e.g., "101010").
         """
@@ -319,11 +328,11 @@ class Data(Pad):
 
     def __call__(self, array: np.ndarray, ptr: int) -> tuple[np.ndarray, int]:
         """Insert literal data without advancing pointer.
-        
+
         Args:
             array: Input binary array.
             ptr: Current pointer position.
-            
+
         Returns:
             Tuple of (data_array, unchanged_pointer).
         """
@@ -340,17 +349,17 @@ class Data(Pad):
 
 class Permute(Command):
     """Reorder bits according to specified indices (1-based in input, 0-based internally).
-    
+
     Attributes:
         value: Numpy array of zero-based indices for permutation.
     """
-    
-    def __init__(self, args: list[Union[int, np.ndarray]]) -> None:
+
+    def __init__(self, args: list[int | np.ndarray]) -> None:
         """Initialize Permute command from list of indices/ranges.
-        
+
         Args:
             args: List of integers or numpy arrays representing indices.
-            
+
         Raises:
             TypeError: If args contain unsupported types.
         """
@@ -367,14 +376,14 @@ class Permute(Command):
 
     def __call__(self, array: np.ndarray, ptr: int) -> tuple[np.ndarray, int]:
         """Permute bits according to stored indices.
-        
+
         Args:
             array: Input binary array.
             ptr: Current pointer position (not used, permute is absolute).
-            
+
         Returns:
             Tuple of (permuted_bits, new_pointer_position).
-            
+
         Note:
             Pointer advances by (max_index + 1) to move past all referenced bits.
         """
