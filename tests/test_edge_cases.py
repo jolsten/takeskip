@@ -1,6 +1,7 @@
 """Edge case and property-based tests for takeskip."""
 
 import numpy as np
+import pytest
 from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 from hypothesis.extra.numpy import arrays
@@ -31,45 +32,51 @@ binary_arrays_2d = arrays(
 
 
 class TestPointerBounds:
-    """Test that pointer clamping prevents invalid indexing."""
+    """Test that out-of-bounds pointer raises ValueError."""
 
     def test_backup_past_beginning(self):
-        """Backup past position 0 should clamp pointer to 0."""
+        """Backup past position 0 should raise ValueError."""
         bits = np.array([1, 0, 1, 1], dtype=np.uint8)
-        # b8 at position 0 would go to -8 without clamping
-        # After clamping to 0, t4 takes from the start
-        result = takeskip("b8t4", bits)
-        expected = np.array([1, 0, 1, 1], dtype=np.uint8)
-        assert_array_equal(result, expected)
+        with pytest.raises(ValueError, match="cannot be negative"):
+            takeskip("b8t4", bits)
 
     def test_backup_past_beginning_after_take(self):
-        """Backup more than current position should clamp to 0."""
+        """Backup more than current position should raise ValueError."""
         bits = np.array([1, 0, 1, 1, 0, 0], dtype=np.uint8)
-        # t2 moves to 2, b4 would go to -2, clamp to 0, t3 takes from start
-        result = takeskip("t2b4t3", bits)
-        expected = np.array([1, 0, 1, 0, 1], dtype=np.uint8)
-        assert_array_equal(result, expected)
+        with pytest.raises(ValueError, match="cannot be negative"):
+            takeskip("t2b4t3", bits)
 
     def test_skip_past_end(self):
-        """Skip past array end should clamp pointer."""
+        """Skip past array end should raise ValueError."""
         bits = np.array([1, 0, 1, 1], dtype=np.uint8)
-        # s10 goes past end, clamped. Subsequent t4 gets nothing.
-        result = takeskip("s10t4", bits)
-        expected = np.array([], dtype=np.uint8)
-        assert_array_equal(result, expected)
+        with pytest.raises(ValueError, match="exceeds array length"):
+            takeskip("s10t4", bits)
 
-    def test_skip_past_end_with_remnant_keep(self):
-        """Skip past end with remnant='keep' should append nothing."""
+    def test_take_past_end(self):
+        """Take past array end should raise ValueError."""
         bits = np.array([1, 0, 1, 1], dtype=np.uint8)
-        result = takeskip("s10", bits, remnant="keep")
-        expected = np.array([], dtype=np.uint8)
-        assert_array_equal(result, expected)
+        with pytest.raises(ValueError, match="exceeds array length"):
+            takeskip("t10", bits)
 
     def test_backup_past_beginning_2d(self):
-        """Pointer clamping works on 2D arrays."""
+        """Out-of-bounds pointer raises on 2D arrays too."""
         bits = np.array([[1, 0, 1, 1], [0, 1, 0, 1]], dtype=np.uint8)
-        result = takeskip("b8t4", bits)
-        assert_array_equal(result, bits)
+        with pytest.raises(ValueError, match="cannot be negative"):
+            takeskip("b8t4", bits)
+
+    def test_backup_exact_is_valid(self):
+        """Backup exactly to 0 should work."""
+        bits = np.array([1, 0, 1, 1], dtype=np.uint8)
+        result = takeskip("t4b4t4", bits)
+        expected = np.array([1, 0, 1, 1, 1, 0, 1, 1], dtype=np.uint8)
+        assert_array_equal(result, expected)
+
+    def test_skip_exact_end_is_valid(self):
+        """Skipping exactly to the end should work."""
+        bits = np.array([1, 0, 1, 1], dtype=np.uint8)
+        result = takeskip("s4", bits)
+        expected = np.array([], dtype=np.uint8)
+        assert_array_equal(result, expected)
 
 
 # --- Edge case tests: __eq__ ---
@@ -217,12 +224,11 @@ class TestPropertyBased:
         assert result.shape[-1] == 0
 
     @given(bits=binary_arrays)
-    def test_backup_clamps_to_zero(self, bits):
-        """Backup from position 0 should clamp and not corrupt results."""
+    def test_backup_past_beginning_raises(self, bits):
+        """Backup past position 0 should raise ValueError."""
         n = len(bits)
-        # backup more than available, then take all
-        result = takeskip(f"b{n + 10}t{n}", bits)
-        assert_array_equal(result, bits)
+        with pytest.raises(ValueError, match="cannot be negative"):
+            takeskip(f"b{n + 10}t{n}", bits)
 
     @given(bits=binary_arrays)
     @settings(max_examples=50)

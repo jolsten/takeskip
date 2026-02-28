@@ -90,7 +90,12 @@ def takeskip(
     max_ptr = array.shape[-1]
     for cmd in commands:
         result, ptr = cmd(array, ptr)
-        ptr = max(0, min(ptr, max_ptr))
+        if ptr < 0:
+            raise ValueError(f"pointer moved to {ptr}; cannot be negative")
+        if ptr > max_ptr:
+            raise ValueError(
+                f"pointer moved to {ptr}; exceeds array length {max_ptr}"
+            )
         components.append(result)
 
     if remnant == "keep":

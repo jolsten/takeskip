@@ -149,7 +149,7 @@ result = takeskip("s2t4", bits)
 
 ## Command Chaining
 
-Commands are executed left-to-right with a maintained pointer:
+Commands are executed left-to-right with a maintained pointer. The pointer must stay within `[0, array_length]` after each command; a `ValueError` is raised if `Backup` moves before the start or `Skip`/`Take` moves past the end.
 
 ```python
 bits = np.array([1, 0, 1, 1, 0, 0, 1, 0], dtype=np.uint8)

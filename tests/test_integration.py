@@ -390,12 +390,10 @@ class TestEdgeCases:
         assert_array_equal(result, expected)
 
     def test_take_more_than_available(self):
-        """Test taking more bits than available."""
+        """Test taking more bits than available raises ValueError."""
         bits = np.array([1, 0, 1, 1], dtype=np.uint8)
-        result = takeskip("t10", bits)
-        # Should only take available bits
-        expected = np.array([1, 0, 1, 1], dtype=np.uint8)
-        assert_array_equal(result, expected)
+        with pytest.raises(ValueError):
+            takeskip("t10", bits)
 
     def test_single_bit_array(self):
         """Test with single bit."""
