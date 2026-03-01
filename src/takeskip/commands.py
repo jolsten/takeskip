@@ -323,7 +323,12 @@ class Data(Pad):
 
         Args:
             value: Binary string (e.g., "101010").
+
+        Raises:
+            ValueError: If value contains characters other than '0' and '1'.
         """
+        if not all(c in "01" for c in value):
+            raise ValueError(f"Data value must contain only '0' and '1', got {value!r}")
         self.value = np.array([int(c) for c in value], dtype="u1")
 
     def __call__(self, array: np.ndarray, ptr: int) -> tuple[np.ndarray, int]:

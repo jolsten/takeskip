@@ -24,6 +24,12 @@ classifiers = [
     "Typing :: Typed",
 ]
 
+[project.urls]
+Homepage = "https://github.com/jolsten/takeskip"
+Repository = "https://github.com/jolsten/takeskip"
+Issues = "https://github.com/jolsten/takeskip/issues"
+Changelog = "https://github.com/jolsten/takeskip/blob/main/CHANGELOG.md"
+
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"

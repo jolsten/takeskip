@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.0b4]
+
+### Fixed
+
+- `Data` command now validates input contains only `0` and `1` characters, raising `ValueError` for invalid input
+
+### Changed
+
+- `parse_command` results are now cached with `lru_cache` for improved performance
+- `parse_command` returns `tuple[Command, ...]` instead of `list` for immutability of cached results
+
+### Added
+
+- Project URLs (Homepage, Repository, Issues, Changelog) in package metadata
+
 ## [0.1.0b3]
 
 ### Changed

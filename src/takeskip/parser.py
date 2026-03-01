@@ -5,6 +5,7 @@ executed on binary arrays.
 """
 
 import pathlib
+from functools import lru_cache
 
 import numpy as np
 import numpy.typing as npt
@@ -262,23 +263,26 @@ class CommandParser(Transformer):
         return Permute(args)
 
 
-def parse_command(s: str) -> list[Command]:
-    """Parse a command string into a list of Command objects.
+@lru_cache(maxsize=256)
+def parse_command(s: str) -> tuple[Command, ...]:
+    """Parse a command string into a tuple of Command objects.
+
+    Results are cached for repeated calls with the same command string.
 
     Args:
         s: Command string (e.g., "s4t8r4" or "(t8s8)3").
 
     Returns:
-        List of Command objects ready to execute.
+        Tuple of Command objects ready to execute.
 
     Raises:
         Various Lark exceptions if the command string has invalid syntax.
 
     Examples:
         >>> parse_command("t4s2")
-        [Take(4), Skip(2)]
+        (Take(4), Skip(2))
         >>> parse_command("(t8s8)2")
-        [Take(8), Skip(8), Take(8), Skip(8)]
+        (Take(8), Skip(8), Take(8), Skip(8))
     """
     tree = command_parser.parse(s)
-    return CommandParser().transform(tree)
+    return tuple(CommandParser().transform(tree))
