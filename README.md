@@ -59,7 +59,7 @@ print(result)  # [1, 0, 1, 1, 0, 1, 0, 0]
 | `p<range>` | Permute using ranges | `p1-4` - select bits 1 through 4 |
 | `p<mixed>` | Mix indices and ranges | `p1-4,8,6-5` - complex permutation |
 
-**Note:** Permutation indices are 1-based for user convenience. Ranges are inclusive.
+**Note:** Permutation indices are 1-based by default (pass `permute_base=0` for 0-based). Indices are relative to the current pointer position, and the pointer advances past the last referenced bit. Ranges are inclusive.
 
 ### Grouping and Repetition
 
@@ -166,7 +166,8 @@ result = takeskip("t2s2t4", bits)  # [1, 0, 0, 0, 1, 0]
 - Commands are **case-insensitive**: `T4`, `t4`, and `T4` are equivalent
 - **Whitespace is ignored**: `t4 s2 r8` = `t4s2r8`
 - **Parentheses** create groups: `(t8s8)4` repeats the sequence 4 times
-- **Permutation** uses 1-based indexing (bit 1 is the first bit)
+- **Permutation** uses 1-based indexing by default (bit 1 is the first bit); pass `permute_base=0` for 0-based
+- **Permutation** indices are relative to the current pointer position
 - **Ranges** in permutation are inclusive: `1-4` includes bits 1, 2, 3, and 4
 
 
@@ -180,6 +181,7 @@ def takeskip(
     array: npt.NDArray[np.uint8],
     *,
     remnant: Literal["remove", "keep", "pad"] = "remove",
+    permute_base: int = 1,
 ) -> np.ndarray
 ```
 
@@ -187,6 +189,7 @@ def takeskip(
 - `command`: Command string expressing the operation
 - `array`: Target numpy array (dtype=uint8, values 0 or 1)
 - `remnant`: How to handle remaining bits ("remove", "keep", or "pad")
+- `permute_base`: Numbering base for permute indices, 0 or 1 (default: 1)
 
 **Returns:**
 - Numpy array with same dtype, modified according to commands
