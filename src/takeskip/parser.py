@@ -5,6 +5,7 @@ executed on binary arrays.
 """
 
 import pathlib
+import warnings
 from functools import lru_cache
 
 import numpy as np
@@ -63,7 +64,14 @@ class CommandParser(Transformer):
 
     This class defines methods matching the grammar rules in takeskip.lark.
     Each method transforms a parse tree node into the appropriate Command object.
+
+    Args:
+        permute_base: Numbering base for permute indices (0 or 1). Default is 1.
     """
+
+    def __init__(self, permute_base: int = 1) -> None:
+        super().__init__()
+        self.permute_base = permute_base
 
     @v_args(inline=True)
     def integer(self, s: str) -> int:
@@ -216,23 +224,37 @@ class CommandParser(Transformer):
         """
         return Data(s)
 
+    def _warn_if_zero(self, value: int) -> None:
+        """Warn if a zero index is used in 1-based permute mode."""
+        if self.permute_base == 1 and value == 0:
+            warnings.warn(
+                "Permute index 0 found in 1-based mode. "
+                "Use 1-based indices or pass permute_base=0 for 0-based indexing.",
+                stacklevel=4,
+            )
+
     @v_args(inline=True)
     def range(self, a: int, b: int) -> npt.NDArray[np.int64]:
-        """Convert range notation to array of indices.
+        """Convert range notation to array of zero-based indices.
 
         Args:
-            a: Start position (1-based).
-            b: End position (1-based).
+            a: Start position (in permute_base numbering).
+            b: End position (in permute_base numbering).
 
         Returns:
             Array of zero-based indices.
         """
-        return one_based_range_to_indices(a, b)
+        self._warn_if_zero(a)
+        self._warn_if_zero(b)
+        start = a - self.permute_base
+        end = b - self.permute_base
+        step = 1 if start <= end else -1
+        return np.arange(start, end + step, step, dtype=np.int64)
 
     def csv(self, args: list) -> list[npt.NDArray[np.int64]]:
         """Process comma-separated values (indices and ranges).
 
-        Converts 1-based single indices to 0-based arrays for consistency.
+        Converts indices from permute_base numbering to 0-based arrays.
 
         Args:
             args: List of integers and/or numpy arrays (ranges).
@@ -243,8 +265,8 @@ class CommandParser(Transformer):
         result = []
         for x in args:
             if isinstance(x, int):
-                # Convert to zero-based, like the ranges already are
-                idx = np.array([x - 1], dtype="int64")
+                self._warn_if_zero(x)
+                idx = np.array([x - self.permute_base], dtype="int64")
                 result.append(idx)
             else:
                 result.append(x)
@@ -264,13 +286,14 @@ class CommandParser(Transformer):
 
 
 @lru_cache(maxsize=256)
-def parse_command(s: str) -> tuple[Command, ...]:
+def parse_command(s: str, permute_base: int = 1) -> tuple[Command, ...]:
     """Parse a command string into a tuple of Command objects.
 
     Results are cached for repeated calls with the same command string.
 
     Args:
         s: Command string (e.g., "s4t8r4" or "(t8s8)3").
+        permute_base: Numbering base for permute indices (0 or 1). Default is 1.
 
     Returns:
         Tuple of Command objects ready to execute.
@@ -285,4 +308,4 @@ def parse_command(s: str) -> tuple[Command, ...]:
         (Take(8), Skip(8), Take(8), Skip(8))
     """
     tree = command_parser.parse(s)
-    return tuple(CommandParser().transform(tree))
+    return tuple(CommandParser(permute_base=permute_base).transform(tree))

@@ -353,17 +353,17 @@ class Data(Pad):
 
 
 class Permute(Command):
-    """Reorder bits according to specified indices (1-based in input, 0-based internally).
+    """Reorder bits according to specified offsets relative to the current pointer.
 
     Attributes:
-        value: Numpy array of zero-based indices for permutation.
+        value: Numpy array of offsets for permutation.
     """
 
     def __init__(self, args: list[int | np.ndarray]) -> None:
         """Initialize Permute command from list of indices/ranges.
 
         Args:
-            args: List of integers or numpy arrays representing indices.
+            args: List of integers or numpy arrays representing offsets.
 
         Raises:
             TypeError: If args contain unsupported types.
@@ -380,19 +380,18 @@ class Permute(Command):
         self.value = np.concatenate(results)
 
     def __call__(self, array: np.ndarray, ptr: int) -> tuple[np.ndarray, int]:
-        """Permute bits according to stored indices.
+        """Permute bits according to stored offsets relative to pointer.
 
         Args:
             array: Input binary array.
-            ptr: Current pointer position (not used, permute is absolute).
+            ptr: Current pointer position.
 
         Returns:
             Tuple of (permuted_bits, new_pointer_position).
 
         Note:
-            Pointer advances by (max_index + 1) to move past all referenced bits.
+            Pointer advances by (max_offset + 1) to move past all referenced bits.
         """
-        result = array[..., self.value]
-        # Advance by the maximum bit number seen in the list
+        result = array[..., ptr + self.value]
         ptr += int(np.max(self.value)) + 1
         return result, ptr

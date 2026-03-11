@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0]
+
+### Fixed
+
+- **Breaking**: Permute indices are now relative to the current pointer position (previously absolute)
+- **Breaking**: Permute advances the pointer by `max(index) + 1`, moving past the last referenced bit
+
+### Changed
+
+- Permute defaults to 1-based indexing; pass `permute_base=0` for 0-based indexing
+- A warning is issued when index `0` appears in 1-based permute mode
+
 ## [0.1.0b4]
 
 ### Fixed

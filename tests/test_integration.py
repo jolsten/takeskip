@@ -132,7 +132,7 @@ class TestPermutation:
         """Test permutation with simple comma-separated indices."""
         bits = np.array([1, 0, 1, 1, 0, 0, 1, 0], dtype=np.uint8)
         result = takeskip("p1,3,5", bits)
-        # 1-based: bits 1,3,5 -> 0-based indices 0,2,4 -> [1,1,0]
+        # 1-based: bits 1,3,5 -> offsets 0,2,4 from pointer -> [1,1,0]
         expected = np.array([1, 1, 0], dtype=np.uint8)
         assert_array_equal(result, expected)
 
@@ -147,7 +147,7 @@ class TestPermutation:
         """Test permutation with backward range."""
         bits = np.array([1, 0, 1, 1, 0, 0, 1, 0], dtype=np.uint8)
         result = takeskip("p4-1", bits)
-        # 4-1 means bits 4,3,2,1 (1-based) -> indices 3,2,1,0 -> [1,1,0,1]
+        # 4-1 means bits 4,3,2,1 (1-based) -> offsets 3,2,1,0 -> [1,1,0,1]
         expected = np.array([1, 1, 0, 1], dtype=np.uint8)
         assert_array_equal(result, expected)
 

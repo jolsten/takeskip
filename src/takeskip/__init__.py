@@ -19,6 +19,7 @@ def takeskip(
     array: npt.NDArray[np.uint8],
     *,
     remnant: Literal["remove", "keep", "pad"] = "remove",
+    permute_base: int = 1,
 ) -> np.ndarray:
     """Perform a take-skip style operation on a binary array.
 
@@ -38,7 +39,7 @@ def takeskip(
         z<n>: pad with n zeros
         n<n>: pad with n ones
         d<binary>: pad with literal binary data (e.g., d101)
-        p<indices>: permute bits using comma-separated indices or ranges (1-based)
+        p<indices>: permute bits using comma-separated indices or ranges
 
     Grouping and repetition:
         (...): group commands
@@ -48,12 +49,13 @@ def takeskip(
         "s4t4" - skip 4 bits, take 4 bits
         "t4r4" - take 4 bits, reverse 4 bits
         "(t8s8)3" - repeat "take 8, skip 8" three times
-        "p1,3,5" - permute bits at positions 1, 3, 5 (1-based indexing)
+        "p1,3,5" - permute bits at positions 1, 3, 5 from pointer (1-based)
         "p1-4,8-5" - take bits 1-4 forward, then 8-5 backward
 
     Notes:
         * Commands are case insensitive and ignore whitespace
-        * Permute (p) uses 1-based indexing, inclusive on both ends
+        * Permute (p) uses 1-based indexing by default (set permute_base=0 for 0-based)
+        * Permute indices are relative to the current pointer position
 
     Args:
         command: The string expressing the operation to perform.
@@ -63,6 +65,7 @@ def takeskip(
                  - "remove": discard remaining bits (default)
                  - "keep": append remaining bits to result
                  - "pad": pad result with zeros to original length
+        permute_base: Numbering base for permute indices (0 or 1). Default is 1.
 
     Returns:
         A numpy array with the same dtype (uint8) and shape as input, except
@@ -83,7 +86,7 @@ def takeskip(
         msg = "invalid remnant argument; must be 'remove', 'keep', or 'pad'"
         raise ValueError(msg)
 
-    commands = parse_command(command)
+    commands = parse_command(command, permute_base=permute_base)
 
     components = []
     ptr = 0
